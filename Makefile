@@ -1,4 +1,4 @@
-.PHONY: docker-build-dev docker-build-production
+.PHONY: docker-dev-build docker-dev-run docker-production-build docker-dind-build docker-dind-run docker-dind-sh docker-dind-stop
 
 SHELL := /bin/bash
 
@@ -6,13 +6,13 @@ default:
 	cat Makefile
 
 docker-dev-build:
-	docker build -f Dockerfile-dev --tag smarthome:dev .
+	docker build -f ./docker/dev --tag smarthome:dev .
 
 docker-dev-run:
 	docker run -it --rm -u `id -u`:`id -g` -v `pwd`:/app smarthome:dev bash
 
 docker-production-build:
-	docker build -f Dockerfile-production --tag smarthome:production .
+	docker build -f ./docker/production --tag smarthome:production .
 
 docker-dind-build:
 	docker build -f ./docker/dind --tag smarthome:dind .

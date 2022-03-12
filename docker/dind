@@ -1,0 +1,15 @@
+FROM docker:19.03.15-dind-alpine3.13
+
+WORKDIR /app
+
+RUN apk add --update curl py-pip python3-dev libffi-dev openssl-dev gcc libc-dev rust cargo make
+
+RUN curl -L "https://github.com/docker/compose/releases/download/v2.3.3/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+RUN mv /usr/local/bin/docker-compose /usr/bin/docker-compose
+RUN chmod +x /usr/bin/docker-compose
+RUN mkdir /etc/bash_completion.d
+RUN curl \
+    -L https://raw.githubusercontent.com/docker/compose/v2.3.3/contrib/completion/bash/docker-compose \
+    -o /etc/bash_completion.d/docker-compose
+
+VOLUME [ "/app" ]

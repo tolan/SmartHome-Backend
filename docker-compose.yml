@@ -1,0 +1,52 @@
+version: "3.2"
+
+services:
+
+  # api:
+  #   build:
+  #     context: .
+  #   image: smarthome:production
+  #   env_file: docker-compose.env
+  #   environment:
+  #     SERVICES: api
+  #     PORT: 3000
+  #   links:
+  #     - redis
+  #   depends_on:
+  #     - redis
+
+  # users:
+  #   build:
+  #     context: .
+  #   image: smarthome:production
+  #   env_file: docker-compose.env
+  #   environment:
+  #     SERVICES: users
+  #   links:
+  #     - redis
+  #     - mongo
+  #   depends_on:
+  #     - redis
+  #     - mongo
+
+  redis:
+    image: redis:alpine
+
+  mongo:
+    image: mongo
+    volumes:
+      - ./db/mongo:/data/db
+
+  whoami:
+    image: traefik/whoami
+    labels:
+      - "traefik.http.routers.whoami.rule=PathPrefix(`/`)"
+
+  traefik:
+    image: traefik:2.6.1
+    command: --api.insecure=true --providers.docker
+    ports:
+      - "4444:80"
+      - "4445:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock

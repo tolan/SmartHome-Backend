@@ -1,0 +1,7 @@
+FROM node:17.6.0
+
+WORKDIR /app
+
+ENV NODE_ENV=development
+
+VOLUME [ "/app" ]

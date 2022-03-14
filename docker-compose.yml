@@ -1,52 +1,68 @@
-version: "3.2"
+version: "3.8"
 
 services:
+  api:
+    build:
+      context: .
+      dockerfile: ./docker/production
+    image: smarthome:production
+    env_file: docker-compose.env
+    environment:
+      SERVICES: api
+      PORT: 4444
+    links:
+      - redis
+    depends_on:
+      - redis
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api-gw.rule=PathPrefix(`/`)"
+      - "traefik.http.services.api-gw.loadbalancer.server.port=4444"
+    networks:
+      - smarthome
 
-  # api:
-  #   build:
-  #     context: .
-  #   image: smarthome:production
-  #   env_file: docker-compose.env
-  #   environment:
-  #     SERVICES: api
-  #     PORT: 3000
-  #   links:
-  #     - redis
-  #   depends_on:
-  #     - redis
-
-  # users:
-  #   build:
-  #     context: .
-  #   image: smarthome:production
-  #   env_file: docker-compose.env
-  #   environment:
-  #     SERVICES: users
-  #   links:
-  #     - redis
-  #     - mongo
-  #   depends_on:
-  #     - redis
-  #     - mongo
+  users:
+    build:
+      context: .
+      dockerfile: ./docker/production
+    image: smarthome:production
+    env_file: docker-compose.env
+    environment:
+      SERVICES: users
+    links:
+      - redis
+      - mongo
+    depends_on:
+      - redis
+      - mongo
+    networks:
+      - smarthome
 
   redis:
     image: redis:alpine
+    networks:
+      - smarthome
 
   mongo:
     image: mongo
     volumes:
-      - ./db/mongo:/data/db
-
-  whoami:
-    image: traefik/whoami
-    labels:
-      - "traefik.http.routers.whoami.rule=PathPrefix(`/`)"
+      - data-mongo:/data/db
+    networks:
+      - smarthome
 
   traefik:
     image: traefik:2.6.1
-    command: --api.insecure=true --providers.docker
+    command: --api.insecure=true --providers.docker --providers.docker.exposedbydefault=false
     ports:
       - "4444:80"
       - "4445:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - smarthome
+
+networks:
+  smarthome:
+
+volumes:
+  data-mongo:

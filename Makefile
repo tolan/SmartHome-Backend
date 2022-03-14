@@ -1,4 +1,4 @@
-.PHONY: docker-dev-build docker-dev-run docker-production-build docker-dind-build docker-dind-run docker-dind-sh docker-dind-stop
+.PHONY: docker-dev-build docker-dev-run docker-production-build docker-dind-build docker-dind-run docker-dind-sh docker-dind-stop dc-up dc-down
 
 SHELL := /bin/bash
 
@@ -18,7 +18,7 @@ docker-dind-build:
 	docker build -f ./docker/dind --tag smarthome:dind .
 
 docker-dind-run:
-	docker run -it --privileged -d -v `pwd`:/app -w /app -p 4444:4444 -p 4445:4445 --name smarthome-dind smarthome:dind
+	docker run -it --privileged -d -v `pwd`:/app -w /app -p 4444:4444 --name smarthome-dind smarthome:dind
 
 docker-dind-sh:
 	docker exec -it smarthome-dind sh
@@ -26,3 +26,9 @@ docker-dind-sh:
 docker-dind-stop:
 	docker stop smarthome-dind
 	docker rm smarthome-dind
+
+dc-up:
+	docker-compose up --build
+
+dc-down:
+	docker-compose down

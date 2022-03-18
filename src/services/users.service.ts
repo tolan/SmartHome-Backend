@@ -1,10 +1,11 @@
 import { Context, Errors, Service, ServiceBroker } from 'moleculer'
-import bcrypt from 'bcryptjs'
+import { hashSync, compare } from 'bcryptjs'
 import DbMixin from '../mixins/db.mixins'
 import CacheCleanerMixin from '../mixins/cache.cleaner.mixin'
-import jwt, { VerifyErrors } from 'jsonwebtoken'
+import { verify, sign, VerifyErrors } from 'jsonwebtoken'
 import { IUserMeta, User } from '../types'
 import Config from '../config'
+import StatusCodes from 'http-status-codes'
 
 const { MoleculerClientError } = Errors
 
@@ -24,7 +25,7 @@ export default class UserService extends Service {
 
             settings: {
                 rest: '/',
-                JWT_SECRET: Config.JWT_SECRET || 'jwt-smarthome-secret',
+                JWT_SECRET: Config.JWT_SECRET,
 
                 fields: ['_id', 'username'],
 
@@ -49,16 +50,21 @@ export default class UserService extends Service {
                         }
                     },
                     async handler(ctx: Context<{ user: User }, IUserMeta>): Promise<User> {
-                        let entity = ctx.params.user
+                        const entity = ctx.params.user
                         await this.validateEntity(entity)
                         if (entity.username) {
                             const found = await this.adapter.findOne({ username: entity.username })
                             if (found) {
-                                throw new MoleculerClientError('Username is exist!', 422, '', [{ field: 'username', message: 'is exist' }])
+                                throw new MoleculerClientError(
+                                    'Username is exist!',
+                                    StatusCodes.UNPROCESSABLE_ENTITY,
+                                    '',
+                                    [{ field: 'username', message: 'is exist' }]
+                                )
                             }
                         }
 
-                        entity.password = bcrypt.hashSync(entity.password, 10)
+                        entity.password = hashSync(entity.password, 10)
                         entity.createdAt = new Date()
 
                         const doc = await this.adapter.insert(entity)
@@ -87,12 +93,22 @@ export default class UserService extends Service {
 
                         const user = await this.adapter.findOne({ username })
                         if (!user) {
-                            throw new MoleculerClientError('Username or password is invalid!', 422, '', [{ field: 'username', message: 'is not found' }])
+                            throw new MoleculerClientError(
+                                'Username or password is invalid!',
+                                StatusCodes.UNPROCESSABLE_ENTITY,
+                                '',
+                                [{ field: 'username', message: 'is not found' }]
+                            )
                         }
 
-                        const res = await bcrypt.compare(password, user.password)
+                        const res = await compare(password, user.password)
                         if (!res) {
-                            throw new MoleculerClientError('Wrong password!', 422, '', [{ field: 'username', message: 'is not found' }])
+                            throw new MoleculerClientError(
+                                'Wrong password!',
+                                StatusCodes.UNPROCESSABLE_ENTITY,
+                                '',
+                                [{ field: 'username', message: 'is not found' }]
+                            )
                         }
 
                         const doc = await this.transformDocuments(ctx, {}, user)
@@ -112,14 +128,15 @@ export default class UserService extends Service {
                         token: 'string'
                     },
                     async handler(ctx: Context<{ token: string }>): Promise<User | null> {
-                        const decoded = await new this.Promise((resolve, reject) => {
-                            jwt.verify(ctx.params.token, this.settings.JWT_SECRET, (err: VerifyErrors | null, decoded: any) => {
-                                if (err)
+                        const decoded: { id: string } = await new this.Promise((resolve, reject) => {
+                            verify(ctx.params.token, this.settings.JWT_SECRET, (err: VerifyErrors | null, decoded: unknown): void => {
+                                if (err) {
                                     return reject(err)
+                                }
 
-                                resolve(decoded)
+                                resolve(decoded as { id: string })
                             })
-                        }) as { id: string }
+                        })
 
                         if (decoded.id) {
                             return this.getById(decoded.id)
@@ -138,10 +155,10 @@ export default class UserService extends Service {
                     cache: {
                         keys: ['#user.id']
                     },
-                    async handler(ctx: Context<{}, IUserMeta>): Promise<User> {
+                    async handler(ctx: Context<null, IUserMeta>): Promise<User> {
                         const user = await this.getById(ctx.meta.user._id)
                         if (!user) {
-                            throw new MoleculerClientError('User not found!', 400)
+                            throw new MoleculerClientError('User not found!', StatusCodes.BAD_REQUEST)
                         }
 
                         const doc = await this.transformDocuments(ctx, {}, user)
@@ -168,7 +185,12 @@ export default class UserService extends Service {
                         if (newData.username) {
                             const found = await this.adapter.findOne({ username: newData.username })
                             if (found && found._id.toString() !== ctx.meta.user._id.toString()) {
-                                throw new MoleculerClientError('Username is exist!', 422, '', [{ field: 'username', message: 'is exist' }])
+                                throw new MoleculerClientError(
+                                    'Username is exist!',
+                                    StatusCodes.UNPROCESSABLE_ENTITY,
+                                    '',
+                                    [{ field: 'username', message: 'is exist' }]
+                                )
                             }
                         }
 
@@ -214,7 +236,7 @@ export default class UserService extends Service {
                     const exp = new Date(today)
                     exp.setDate(today.getDate() + 60)
 
-                    return jwt.sign({
+                    return sign({
                         id: user._id,
                         username: user.username,
                         exp: Math.floor(exp.getTime() / 1000)

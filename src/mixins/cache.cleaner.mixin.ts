@@ -1,4 +1,4 @@
-import { LoggerInstance, ServiceBroker, ServiceEventHandler, ServiceEvents, ServiceSchema } from "moleculer";
+import { LoggerInstance, ServiceBroker, ServiceEvents, ServiceSchema } from "moleculer";
 
 export default function (eventNames: string[]): ServiceSchema {
 

@@ -3,10 +3,12 @@
     "compilerOptions": {
         "baseUrl": ".",
         "outDir": "./dist",
+        "target": "ES2022",
+        "module": "commonjs",
         "moduleResolution": "node",
         "typeRoots": [
+            "./typings",
             "./node_modules/@types",
-            "./typings"
         ],
     },
     "include": [
@@ -15,6 +17,5 @@
     ],
     "exclude": [
         "node_modules",
-        "**/*.spec.ts",
     ],
 }

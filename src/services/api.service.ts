@@ -46,10 +46,10 @@ export default class ApiService extends Service {
                 /**
                  * Authorize the request
                  */
-                async authorize(ctx: Context<{}, IUserMeta>, _route: ApiRouteSchema, req: typeof ApiGateway['IncomingRequest']): Promise<void> {
+                async authorize(ctx: Context<null, IUserMeta>, _route: ApiRouteSchema, req: typeof ApiGateway['IncomingRequest']): Promise<void> {
                     let token
                     if (req.headers.authorization) {
-                        let type = req.headers.authorization.split(' ')[0]
+                        const type = req.headers.authorization.split(' ')[0]
                         if (['Token', 'Bearer'].includes(type)) {
                             token = req.headers.authorization.split(' ')[1]
                         }

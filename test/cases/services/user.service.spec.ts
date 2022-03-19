@@ -6,6 +6,7 @@ describe('Test user service', () => {
     const userService = new UserService(broker)
 
     beforeAll(() => broker.start())
+    afterEach(() => jest.restoreAllMocks())
     afterAll(() => broker.stop())
 
     describe('Call users.list action', () => {
@@ -47,7 +48,7 @@ describe('Test user service', () => {
                 total: 2,
                 totalPages: 1,
             })
-            expect(mockList).toBeCalledTimes(2)
+            expect(mockList).toBeCalledTimes(1)
             expect(mockCount).toBeCalledTimes(1)
         })
     })

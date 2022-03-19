@@ -1,6 +1,10 @@
 # SmartHome-Backend
 
+<br>
+
 [![Node.js CI](https://github.com/tolan/SmartHome-Backend/actions/workflows/node.js.yml/badge.svg)](https://github.com/tolan/SmartHome-Backend/actions/workflows/node.js.yml)
+
+<br>
 
 This is a backend part of smarthome project.
 

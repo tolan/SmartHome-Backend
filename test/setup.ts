@@ -1,7 +1,10 @@
 import { performance } from 'perf_hooks'
 
-declare module globalThis {
-    let performance: any
+// eslint-disable-next-line @typescript-eslint/no-namespace
+declare namespace globalThis {
+    let performance: {
+        now: () => number
+    }
 }
 
 globalThis.performance = performance

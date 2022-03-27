@@ -3,7 +3,7 @@ export type Config = {
     PORT: number
     MONGO_URI: string | null
     JWT_SECRET: string
-    CRYPT_SALT: number | number
+    CRYPT_SALT: number | string
 }
 
 export default {

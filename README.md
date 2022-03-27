@@ -23,6 +23,8 @@ This is a backend part of smarthome project.
 - `npm run test --file test/cases/services/user.service.spec.ts`
 
 ## Config
+- `NODE_ENV: development | production | test` - node environment
 - `PORT: number` - port where api gateway is runing  `default: 4444`
 - `MONGO_URI: string` - mongo uri `example: mongodb://mongo/smarthome, default: null - then it uses memory db`
 - `JWT_SECRET: string` - secret for jwt (sign and verify) `default: jwt-smarthome-secret`
+- `CRYPT_SALT: number | string` - salt for crypt `default: 10`

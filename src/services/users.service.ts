@@ -4,7 +4,7 @@ import DbMixin from '../mixins/db.mixins'
 import CacheCleanerMixin from '../mixins/cache.cleaner.mixin'
 import { verify, sign, VerifyErrors } from 'jsonwebtoken'
 import { IUserMeta, User } from '../types'
-import Config from '../config'
+import config from '../config'
 import StatusCodes from 'http-status-codes'
 
 const { MoleculerClientError } = Errors
@@ -25,7 +25,7 @@ export default class UserService extends Service {
 
             settings: {
                 rest: '/',
-                JWT_SECRET: Config.JWT_SECRET,
+                JWT_SECRET: config.JWT_SECRET,
 
                 fields: ['_id', 'username'],
 
@@ -52,19 +52,17 @@ export default class UserService extends Service {
                     async handler(ctx: Context<{ user: User }, IUserMeta>): Promise<User> {
                         const entity = ctx.params.user
                         await this.validateEntity(entity)
-                        if (entity.username) {
-                            const found = await this.adapter.findOne({ username: entity.username })
-                            if (found) {
-                                throw new MoleculerClientError(
-                                    'Username is exist!',
-                                    StatusCodes.UNPROCESSABLE_ENTITY,
-                                    '',
-                                    [{ field: 'username', message: 'is exist' }]
-                                )
-                            }
+                        const found = await this.adapter.findOne({ username: entity.username })
+                        if (found) {
+                            throw new MoleculerClientError(
+                                'Username is exist!',
+                                StatusCodes.UNPROCESSABLE_ENTITY,
+                                '',
+                                [{ field: 'username', message: 'is exist' }]
+                            )
                         }
 
-                        entity.password = hashSync(entity.password, 10)
+                        entity.password = hashSync(entity.password, config.CRYPT_SALT)
                         entity.createdAt = new Date()
 
                         const doc = await this.adapter.insert(entity)
